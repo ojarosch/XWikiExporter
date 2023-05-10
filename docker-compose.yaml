@@ -1,0 +1,37 @@
+version: '2'
+networks:
+  bridge:
+    driver: bridge
+services:
+  web:
+    image: "arm64v8/xwiki:lts-mariadb-tomcat" #image used for Apple silicon
+    container_name: xwiki-mariadb-tomcat-web
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_USER=xwiki
+      - DB_PASSWORD=xwiki
+      - DB_HOST=xwiki-mariadb-db
+    volumes:
+      - xwiki-data:/usr/local/xwiki
+    networks:
+      - bridge
+  db:
+    image: "arm64v8/mariadb" #image used for Apple silicon
+    container_name: xwiki-mariadb-db
+    volumes:
+      - ./xwiki.cnf:/etc/mariadb/conf.d/xwiki.cnf
+      - mariadb-data:/var/lib/mariadb
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MARIADB_ROOT_PASSWORD=xwiki
+      - MARIADB_USER=xwiki
+      - MARIADB_PASSWORD=xwiki
+      - MARIADB_DATABASE=xwiki
+    networks:
+      - bridge
+volumes:
+  mariadb-data: {}
+  xwiki-data: {}
